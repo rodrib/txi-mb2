@@ -275,3 +275,74 @@ st.plotly_chart(fig_sales, use_container_width=True)
 
 
 ui.table(data=df_saldo_anterior1, maxHeight=300)
+
+
+# ################
+# import streamlit as st
+# import numpy as np
+# import pandas as pd
+# import calplot
+# import matplotlib.pyplot as plt
+
+# # Semilla aleatoria para reproducibilidad
+# np.random.seed(sum(map(ord, 'calplot')))
+
+# # Generar datos de ejemplo
+# all_days = pd.date_range('1/1/2019', periods=730, freq='D')
+# days = np.random.choice(all_days, 500)
+# events = pd.Series(np.random.randn(len(days)), index=days)
+
+# # Crear el gráfico de calplot
+# fig, ax = calplot.calplot(events, cmap='YlGn', colorbar=True)
+
+# # Mostrar el gráfico en Streamlit
+# st.title("Calendario de Eventos")
+# st.write("Este es un ejemplo de un gráfico de calendario generado con calplot.")
+# st.pyplot(fig)
+
+
+
+##################
+import streamlit as st
+import pandas as pd
+import calplot
+import matplotlib.pyplot as plt
+
+# Cargar los datos
+nombre_archivo = 'taxi-all-23-3.csv'
+df1 = pd.read_csv(nombre_archivo, thousands=',', na_values=['NaN', 'N/A', 'NaT', 'NaN '], encoding='latin1')
+
+# Imprimir las columnas para verificar que 'Fecha' está presente
+#st.write(df1.columns)
+
+# Asegurarse de que la columna 'Fecha' esté presente en el DataFrame
+if 'Fecha' in df1.columns:
+    # Eliminar filas con fecha None
+    df1 = df1.dropna(subset=["Fecha"])
+
+    # Convertir la columna de fecha a tipo datetime, asumiendo que falta el año y asignándole 2023
+    df1["Fecha"] = pd.to_datetime(df1["Fecha"] + "/2023", format="%d/%m/%Y", errors='coerce')
+
+    # Eliminar filas con fechas inválidas (None) después de la conversión
+    df1 = df1.dropna(subset=["Fecha"])
+
+    # Crear DataFrame df_calendar con las fechas y la cantidad de veces que aparecen
+    df_calendar = df1["Fecha"].value_counts().reset_index()
+    df_calendar.columns = ["Fecha", "Count"]
+
+    # Ordenar por fecha
+    df_calendar = df_calendar.sort_values(by="Fecha")
+
+    # Crear Series para calplot
+    events = pd.Series(df_calendar["Count"].values, index=df_calendar["Fecha"])
+
+    # Crear el gráfico de calplot
+    fig, ax = calplot.calplot(events, cmap='YlGn', colorbar=True)
+
+    # Mostrar el gráfico en Streamlit
+    st.title("Calendario de Eventos")
+    #st.write("Movimientos bancarios")
+    st.subheader("Cantidad de Movimientos por fecha")
+    st.pyplot(fig)
+else:
+    st.error("La columna 'Fecha' no está presente en el archivo CSV.")
